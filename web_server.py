@@ -18,8 +18,9 @@ Session(app)
 async def scrape():
     try:
         url = request.json.get('url')
-        print(request.json)
         content = await main(url)
+        if not content:
+            return jsonify({"error": "Failed to scrape content"})
         body_content = get_body_content(content)
         cleaned_content = clean_body_content(body_content)
         session['content'] = cleaned_content
@@ -32,7 +33,6 @@ async def scrape():
 def parse_content():
     try:
         user_prompt = request.json.get('prompt')
-        print(user_prompt)
         content = session.get('content')
 
         if content:

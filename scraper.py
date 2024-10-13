@@ -4,13 +4,16 @@ from playwright.async_api import async_playwright, Playwright
 
 
 async def scrape(playwright: Playwright, url: str):
-    browser = await playwright.chromium.launch()
-    page = await browser.new_page()
-    print(url)
-    response = await page.goto(url)
-    content =  await page.content()
-    await browser.close()
-    return content
+    try:
+        browser = await playwright.chromium.launch()
+        page = await browser.new_page()
+        response = await page.goto(url)
+        content =  await page.content()
+        await browser.close()
+        return content
+    except Exception as e:
+        print(str(e))
+        return ""
 
 def get_body_content(content):
     soup = BeautifulSoup(content, 'html.parser')
