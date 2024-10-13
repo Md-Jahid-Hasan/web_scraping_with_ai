@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Web Scraper</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+
+        .form-control, .accordion-button, .accordion-body {
+            background-color: #2a2a2a;
+            color: #ffffff;
+            border-color: #3a3a3a;
+        }
+
+        .form-control:focus {
+            background-color: #2a2a2a;
+            color: #ffffff;
+        }
+
+        .accordion-button::after {
+            filter: invert(1);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background-color: #3a3a3a;
+            color: #ffffff;
+        }
+
+        #loader {
+            display: none;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <header class="mb-4 d-flex justify-content-between align-items-center">
+        <h1 class="display-4">AI Web Scraper</h1>
+        <button class="btn btn-outline-light">Deploy</button>
+    </header>
+
+    <form id="scraperForm">
+        <div class="mb-3">
+            <label for="websiteUrl" class="form-label">Enter a Website URL:</label>
+            <input type="text" class="form-control" id="websiteUrl">
+        </div>
+
+        <button type="submit" class="btn btn-primary mb-4">Scrape Site</button>
+    </form>
+    <div id="loader" class="text-center mb-4">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Scraping the website...</p>
+    </div>
+
+    <div id="scrapingResult" style="display: none;">
+        <h2 class="h4 mb-3">Scraping the website</h2>
+
+        <div class="accordion mb-4" id="domContentAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#domContent">
+                        View DOM Content
+                    </button>
+                </h2>
+                <div id="domContent" class="accordion-collapse collapse" data-bs-parent="#domContentAccordion">
+                    <div class="accordion-body">
+                        <textarea class="form-control" id="body-content"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form id="parseContent">
+            <div class="mb-3">
+                <label for="parseDescription" class="form-label">Describe what you want to parse?</label>
+                <textarea class="form-control" id="parseDescription" rows="3">Can you please collect all of the relevant property information and organize it in a table</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="parseButton">Parse Content</button>
+        </form>
+        <p id="result"></p>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('scraperForm');
+        const parseForm = document.getElementById('parseContent');
+        const loader = document.getElementById('loader');
+        const scrapingResult = document.getElementById('scrapingResult');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            loader.style.display = 'block';
+            scrapingResult.style.display = 'none';
+            const websiteUrl = document.getElementById('websiteUrl').value;
+
+            fetch('http://127.0.0.1:5000/scraper', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({url: websiteUrl})
+            }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    document.getElementById('body-content').value = data.content;
+                    loader.style.display = 'none';
+                    scrapingResult.style.display = 'block';
+                }).catch(error => {
+                console.error(error);
+            });
+        });
+
+        parseForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            loader.style.display = 'block';
+            const parseDescription = document.getElementById('parseDescription').value;
+
+            fetch('http://127.0.0.1:5000/parse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({prompt:parseDescription})
+            }).then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    document.getElementById("result").textContent = data.result;
+                    loader.style.display = 'none';
+                }).catch(error => {
+                console.error(error);
+            });
+        });
+    });
+</script>
+</body>
+</html>
